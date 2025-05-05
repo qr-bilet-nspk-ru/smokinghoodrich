@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     tg.expand();
     tg.enableClosingConfirmation();
 
+    // Элементы интерфейса
     const unlockPhase = document.getElementById('unlock-phase');
     const scrollPhase = document.getElementById('scroll-phase');
     const resultPhase = document.getElementById('result-phase');
@@ -15,12 +16,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const openBtn = document.getElementById('open-btn');
     const continueBtn = document.getElementById('continue-btn');
     const balanceEl = document.getElementById('balance');
+    const inventoryGrid = document.getElementById('inventory-grid');
+    const tabButtons = document.querySelectorAll('.tab-btn');
 
+    // Звуки
     const unlockSound = document.getElementById('unlock-sound');
     const scrollSound = document.getElementById('scroll-sound');
     const slowdownSound = document.getElementById('slowdown-sound');
     const winSound = document.getElementById('win-sound');
 
+    // Предметы
     const items = [
         { name: "TROPIC MINT", image: "images/items/tropic-mint.png", flavor: "Освежающая мята с тропическими нотами", rarity: "rare", strength: "3/5" },
         { name: "WINTERGREEN", image: "images/items/wintergreen.png", flavor: "Классический зимний вкус", rarity: "mythical", strength: "4/5" },
@@ -29,6 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { name: "JUICY PEACH", image: "images/items/peach.png", flavor: "Сочный персик с холодком", rarity: "common", strength: "2/5" }
     ];
 
+    // Состояние
     let balance = 5;
     let isOpening = false;
     let scrollSpeed = 0;
@@ -36,6 +42,56 @@ document.addEventListener('DOMContentLoaded', () => {
     let targetPosition = 0;
     let animationFrameId = null;
     let selectedItem = null;
+    let userId = tg.initDataUnsafe.user?.id || 'default_user';
+
+    // Инициализация
+    initTabs();
+    loadInventory();
+
+    // Функции
+    function initTabs() {
+        tabButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn, .tab-content').forEach(el => {
+                    el.classList.remove('active');
+                });
+                btn.classList.add('active');
+                document.getElementById(`${btn.dataset.tab}-tab`).classList.add('active');
+                
+                if (btn.dataset.tab === 'inventory') {
+                    loadInventory();
+                }
+            });
+        });
+    }
+
+    async function loadInventory() {
+        try {
+            // В реальном приложении здесь будет fetch к вашему API
+            const mockInventory = [
+                { name: "TROPIC MINT", image: "images/items/tropic-mint.png", rarity: "rare" },
+                { name: "BLUEBERRY", image: "images/items/blueberry.png", rarity: "rare" }
+            ];
+            
+            renderInventory(mockInventory);
+        } catch (error) {
+            console.error('Ошибка загрузки инвентаря:', error);
+        }
+    }
+
+    function renderInventory(items) {
+        inventoryGrid.innerHTML = '';
+        items.forEach(item => {
+            const itemEl = document.createElement('div');
+            itemEl.className = 'inventory-item';
+            itemEl.innerHTML = `
+                <img src="${item.image}" alt="${item.name}">
+                <h3>${item.name}</h3>
+                <span class="rarity-badge ${item.rarity}">${item.rarity.toUpperCase()}</span>
+            `;
+            inventoryGrid.appendChild(itemEl);
+        });
+    }
 
     function fillItemsTrack() {
         itemsTrack.innerHTML = '';
@@ -159,7 +215,7 @@ document.addEventListener('DOMContentLoaded', () => {
         wonItemName.textContent = selectedItem.name;
         wonItemFlavor.textContent = selectedItem.flavor;
 
-        let rarityText = {
+        const rarityText = {
             'common': 'ОБЫЧНЫЙ',
             'rare': 'РЕДКИЙ',
             'mythical': 'МИФИЧЕСКИЙ',
@@ -169,7 +225,19 @@ document.addEventListener('DOMContentLoaded', () => {
         rarityBadge.textContent = rarityText;
         rarityBadge.className = `rarity-badge ${selectedItem.rarity}`;
 
+        // Вибрация
+        if (window.navigator.vibrate) {
+            window.navigator.vibrate([100, 50, 100]);
+        }
+
         winSound.play();
+        saveItemToInventory(selectedItem);
+    }
+
+    function saveItemToInventory(item) {
+        // В реальном приложении здесь будет fetch к вашему API
+        console.log('Предмет добавлен в инвентарь:', item);
+        loadInventory(); // Обновляем инвентарь
     }
 
     function continueAfterWin() {
@@ -186,11 +254,14 @@ document.addEventListener('DOMContentLoaded', () => {
         openBtn.disabled = false;
     }
 
+    // Обработчики событий
     openBtn.addEventListener('click', startOpening);
     continueBtn.addEventListener('click', continueAfterWin);
 
+    // Инициализация трека при загрузке
     fillItemsTrack();
 
+    // Telegram Main Button
     if (tg.platform !== 'unknown') {
         tg.MainButton.setText("Купить пластинки");
         tg.MainButton.onClick(() => {

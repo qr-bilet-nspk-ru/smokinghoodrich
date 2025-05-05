@@ -26,11 +26,84 @@ body {
     display: flex;
     flex-direction: column;
     height: 100%;
-    padding: 20px;
+    padding: 10px;
     max-width: 100%;
     box-sizing: border-box;
 }
 
+/* Вкладки */
+.tabs {
+    display: flex;
+    margin-bottom: 10px;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 12px;
+    background: rgba(40, 40, 40, 0.8);
+    border: none;
+    color: var(--light);
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.tab-btn.active {
+    background: var(--primary);
+}
+
+.tab-content {
+    display: none;
+    flex-grow: 1;
+}
+
+.tab-content.active {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Инвентарь */
+.inventory-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
+    padding: 10px;
+    overflow-y: auto;
+    max-height: 65vh;
+}
+
+.inventory-item {
+    background: rgba(30, 30, 30, 0.9);
+    border-radius: 8px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border: 2px solid transparent;
+    transition: transform 0.2s ease;
+}
+
+.inventory-item:hover {
+    transform: scale(1.05);
+}
+
+.inventory-item img {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+    margin-bottom: 8px;
+}
+
+.inventory-item h3 {
+    font-size: 14px;
+    text-align: center;
+    margin: 5px 0;
+}
+
+/* Остальные стили (кейсы, анимации) */
 .case-container {
     position: relative;
     flex-grow: 1;
@@ -39,7 +112,6 @@ body {
     align-items: center;
 }
 
-/* Unlock Phase */
 .unlock-phase {
     display: flex;
     flex-direction: column;
@@ -48,8 +120,10 @@ body {
 }
 
 .case-image {
-    width: 280px;
-    height: 200px;
+    width: 100%;
+    max-width: 280px;
+    height: auto;
+    aspect-ratio: 1.4;
     object-fit: contain;
     margin-bottom: 20px;
     filter: drop-shadow(0 0 15px rgba(0, 200, 83, 0.3));
@@ -78,7 +152,6 @@ body {
     text-shadow: 0 0 10px rgba(0, 200, 83, 0.5);
 }
 
-/* Scroll Phase */
 .scroll-phase {
     position: absolute;
     width: 100%;
@@ -138,7 +211,6 @@ body {
     box-shadow: 0 0 20px rgba(255, 109, 0, 0.7);
 }
 
-/* Result Phase */
 .result-phase {
     position: absolute;
     width: 100%;
@@ -242,12 +314,13 @@ body {
     box-shadow: 0 5px 15px rgba(0, 200, 83, 0.4);
 }
 
-/* Controls */
 .controls {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 15px 0;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 0 0 10px 10px;
 }
 
 .balance {
@@ -284,13 +357,13 @@ body {
     box-shadow: 0 5px 15px rgba(0, 200, 83, 0.4);
 }
 
-/* Rarity Colors */
+/* Цвета редкостей */
 .common { background: var(--common); color: white; }
 .rare { background: var(--rare); color: white; }
 .mythical { background: var(--mythical); color: white; }
 .legendary { background: var(--legendary); color: white; }
 
-/* Selected Item Highlight */
+/* Выделенный предмет */
 .selected .scroll-item {
     border-color: var(--accent);
     box-shadow: 0 0 20px rgba(255, 109, 0, 0.5);
@@ -299,4 +372,12 @@ body {
 
 .selected .scroll-item img {
     transform: scale(1.1);
+}
+
+/* Адаптация */
+@media (max-width: 500px) {
+    .case-image { max-width: 200px; }
+    .scroll-item { min-width: 120px; height: 150px; }
+    .scroll-item img { width: 80px; height: 80px; }
+    .inventory-grid { grid-template-columns: repeat(2, 1fr); }
 }
