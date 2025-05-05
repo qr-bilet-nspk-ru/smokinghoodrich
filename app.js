@@ -22,18 +22,31 @@ document.addEventListener('DOMContentLoaded', () => {
         caseImage: document.querySelector('.case-image')
     };
 
+    // Полный список предметов с вероятностями
     const items = [
-        { name: "🍉 Арбуз", image: "images/items/watermelon.png", flavor: "Сочный летний вкус", rarity: "common", strength: "2/5" },
-        { name: "🔋 Энергетик", image: "images/items/energy.png", flavor: "Заряд бодрости", rarity: "rare", strength: "4/5" },
-        { name: "🍑 Персик", image: "images/items/peach.png", flavor: "Нежная сладость", rarity: "common", strength: "1/5" },
-        { name: "🍏 Яблоко", image: "images/items/apple.png", flavor: "Классическая свежесть", rarity: "common", strength: "2/5" },
-        { name: "🍓 Клубника", image: "images/items/strawberry.png", flavor: "Ягодный взрыв", rarity: "rare", strength: "3/5" },
-        { name: "🎈 Бабл-Гам", image: "images/items/bubblegum.png", flavor: "Детская радость", rarity: "mythical", strength: "1/5" },
-        { name: "🫐 Ежевика", image: "images/items/blackberry.png", flavor: "Терпкая глубина", rarity: "rare", strength: "3/5" },
-        { name: "🍇 Виноград", image: "images/items/grape.png", flavor: "Виноградный коктейль", rarity: "common", strength: "2/5" },
-        { name: "🥶 Холодок", image: "images/items/ice.png", flavor: "Ледяная свежесть", rarity: "legendary", strength: "5/5" },
-        { name: "🍒 Вишня", image: "images/items/cherry.png", flavor: "Терпкая сладость", rarity: "mythical", strength: "4/5" },
-        { name: "🫐 Черника", image: "images/items/blueberry.png", flavor: "Лесная ягода", rarity: "rare", strength: "3/5" }
+        // LOOP пачки (редкие)
+        { name: "🍉 Арбуз", image: "images/items/watermelon.png", flavor: "Сочный летний вкус", rarity: "rare", strength: "2/5", probability: 2 },
+        { name: "🔋 Энергетик", image: "images/items/energy.png", flavor: "Заряд бодрости", rarity: "rare", strength: "4/5", probability: 2 },
+        { name: "🍑 Персик", image: "images/items/peach.png", flavor: "Нежная сладость", rarity: "rare", strength: "1/5", probability: 2 },
+        { name: "🍏 Яблоко", image: "images/items/apple.png", flavor: "Классическая свежесть", rarity: "rare", strength: "2/5", probability: 2 },
+        { name: "🍓 Клубника", image: "images/items/strawberry.png", flavor: "Ягодный взрыв", rarity: "rare", strength: "3/5", probability: 2 },
+        { name: "🎈 Бабл-Гам", image: "images/items/bubblegum.png", flavor: "Детская радость", rarity: "mythical", strength: "1/5", probability: 2 },
+        { name: "🫐 Ежевика", image: "images/items/blackberry.png", flavor: "Терпкая глубина", rarity: "rare", strength: "3/5", probability: 2 },
+        { name: "🍇 Виноград", image: "images/items/grape.png", flavor: "Виноградный коктейль", rarity: "rare", strength: "2/5", probability: 2 },
+        { name: "🥶 Холодок", image: "images/items/ice.png", flavor: "Ледяная свежесть", rarity: "legendary", strength: "5/5", probability: 2 },
+        { name: "🍒 Вишня", image: "images/items/cherry.png", flavor: "Терпкая сладость", rarity: "mythical", strength: "4/5", probability: 2 },
+        { name: "🫐 Черника", image: "images/items/blueberry.png", flavor: "Лесная ягода", rarity: "rare", strength: "3/5", probability: 2 },
+        
+        // Скидки
+        { name: "5% Скидка", image: "images/items/discount.png", flavor: "На ваш следующий заказ", rarity: "discount-5", probability: 10 },
+        { name: "10% Скидка", image: "images/items/discount.png", flavor: "На ваш следующий заказ", rarity: "discount-10", probability: 7 },
+        { name: "15% Скидка", image: "images/items/discount.png", flavor: "На ваш следующий заказ", rarity: "discount-15", probability: 6 },
+        { name: "20% Скидка", image: "images/items/discount.png", flavor: "На ваш следующий заказ", rarity: "discount-20", probability: 3 },
+        
+        // Другие награды
+        { name: "Ничего", image: "images/items/nothing.png", flavor: "Попробуйте еще раз!", rarity: "nothing", probability: 40 },
+        { name: "Бесплатная доставка", image: "images/items/shipping.png", flavor: "При заказе от 10 пачек", rarity: "free-shipping", probability: 2 },
+        { name: "Дополнительный прокрут", image: "images/items/extra-spin.png", flavor: "Откройте еще один кейс бесплатно", rarity: "extra-spin", probability: 10 }
     ];
 
     const config = {
@@ -54,14 +67,14 @@ document.addEventListener('DOMContentLoaded', () => {
             unlock: document.getElementById('unlock-sound'),
             scroll: document.getElementById('scroll-sound'),
             slowdown: document.getElementById('slowdown-sound'),
-            win: document.getElementById('win-sound')
+            win: document.getElementById('win-sound'),
+            lose: document.getElementById('lose-sound')
         }
     };
 
     init();
 
     function init() {
-        fillItemsTrack();
         setupEventListeners();
         startFreeCaseTimer();
         updateInventoryCounter();
@@ -110,6 +123,33 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 20);
     }
 
+    function fillItemsTrack() {
+        elements.itemsTrack.innerHTML = '';
+        
+        // Создаем взвешенный массив предметов
+        const weightedItems = [];
+        items.forEach(item => {
+            for (let i = 0; i < item.probability; i++) {
+                weightedItems.push(item);
+            }
+        });
+        
+        // Заполняем трек случайными предметами с учетом вероятностей
+        for (let i = 0; i < 60; i++) { // Увеличил количество предметов
+            const randomIndex = Math.floor(Math.random() * weightedItems.length);
+            const randomItem = weightedItems[randomIndex];
+            
+            const itemElement = document.createElement('div');
+            itemElement.className = 'scroll-item';
+            itemElement.innerHTML = `
+                <img src="${randomItem.image}" alt="${randomItem.name}">
+                <h3>${randomItem.name}</h3>
+            `;
+            itemElement.dataset.item = JSON.stringify(randomItem);
+            elements.itemsTrack.appendChild(itemElement);
+        }
+    }
+
     function startScrolling() {
         elements.unlockPhase.style.opacity = '0';
         elements.scrollPhase.style.display = 'flex';
@@ -118,7 +158,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const firstItem = document.querySelector('.scroll-item');
         config.itemWidth = firstItem.offsetWidth + 10;
 
-        const stopIndex = 30 + Math.floor(Math.random() * 10);
+        // Выбираем случайную позицию остановки (в первой половине трека)
+        const stopIndex = 20 + Math.floor(Math.random() * 20);
         state.targetPosition = stopIndex * config.itemWidth - (window.innerWidth / 2 - config.itemWidth / 2);
         state.scrollPosition = 0;
 
@@ -127,13 +168,13 @@ document.addEventListener('DOMContentLoaded', () => {
         state.audio.scroll.play();
 
         state.startTime = performance.now();
-        requestAnimationFrame(animateScroll);
+        state.animationFrameId = requestAnimationFrame(animateScroll);
     }
 
     function animateScroll(timestamp) {
         const elapsed = timestamp - state.startTime;
         const progress = Math.min(elapsed / config.scrollDuration, 1);
-        const easedProgress = 1 - Math.pow(1 - progress, 3); // easeOutCubic
+        const easedProgress = 1 - Math.pow(1 - progress, 3);
         const currentPosition = easedProgress * state.targetPosition;
 
         elements.itemsTrack.style.transform = `translateX(-${currentPosition}px)`;
@@ -142,7 +183,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateSelectedItem();
 
         if (progress < 1) {
-            requestAnimationFrame(animateScroll);
+            state.animationFrameId = requestAnimationFrame(animateScroll);
         } else {
             finishOpening();
         }
@@ -183,18 +224,34 @@ document.addEventListener('DOMContentLoaded', () => {
             'common': 'ОБЫЧНЫЙ',
             'rare': 'РЕДКИЙ',
             'mythical': 'МИФИЧЕСКИЙ',
-            'legendary': 'ЛЕГЕНДАРНЫЙ'
+            'legendary': 'ЛЕГЕНДАРНЫЙ',
+            'nothing': 'ПУСТО',
+            'discount-5': 'СКИДКА 5%',
+            'discount-10': 'СКИДКА 10%',
+            'discount-15': 'СКИДКА 15%',
+            'discount-20': 'СКИДКА 20%',
+            'free-shipping': 'БЕСПЛАТНАЯ ДОСТАВКА',
+            'extra-spin': 'ДОП. ПРОКРУТ'
         }[state.selectedItem.rarity];
 
         elements.rarityBadge.textContent = rarityText;
         elements.rarityBadge.className = `rarity-badge ${state.selectedItem.rarity}`;
 
-        state.inventory.push(state.selectedItem);
-        updateInventoryCounter();
-
-        state.audio.scroll.pause();
-        state.audio.win.currentTime = 0;
-        state.audio.win.play();
+        // Обработка специальных наград
+        if (state.selectedItem.rarity === 'nothing') {
+            state.audio.lose.currentTime = 0;
+            state.audio.lose.play();
+        } else if (state.selectedItem.rarity === 'extra-spin') {
+            state.balance += 1;
+            elements.balanceEl.textContent = state.balance;
+            state.audio.win.currentTime = 0;
+            state.audio.win.play();
+        } else {
+            state.inventory.push(state.selectedItem);
+            updateInventoryCounter();
+            state.audio.win.currentTime = 0;
+            state.audio.win.play();
+        }
 
         if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
     }
@@ -207,22 +264,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (state.balance === 0) {
             state.balance = 3;
             elements.balanceEl.textContent = state.balance;
-        }
-    }
-
-    function fillItemsTrack() {
-        elements.itemsTrack.innerHTML = '';
-        for (let i = 0; i < 40; i++) {
-            [...items].sort(() => Math.random() - 0.5).forEach(item => {
-                const itemElement = document.createElement('div');
-                itemElement.className = 'scroll-item';
-                itemElement.innerHTML = `
-                    <img src="${item.image}" alt="${item.name}">
-                    <h3>${item.name}</h3>
-                `;
-                itemElement.dataset.item = JSON.stringify(item);
-                elements.itemsTrack.appendChild(itemElement);
-            });
         }
     }
 

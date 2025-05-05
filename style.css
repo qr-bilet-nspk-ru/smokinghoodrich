@@ -473,7 +473,42 @@
       height: 120px;
     }
   }
-  
+  .nothing {
+    background: #555;
+    color: white;
+}
+
+.discount-5 {
+    background: linear-gradient(135deg, #4CC9F0, #4895EF);
+    color: white;
+}
+
+.discount-10 {
+    background: linear-gradient(135deg, #4895EF, #4361EE);
+    color: white;
+}
+
+.discount-15 {
+    background: linear-gradient(135deg, #4361EE, #3A0CA3);
+    color: white;
+}
+
+.discount-20 {
+    background: linear-gradient(135deg, #3A0CA3, #7209B7);
+    color: white;
+}
+
+.free-shipping {
+    background: linear-gradient(135deg, #7209B7, #F72585);
+    color: white;
+    animation: pulse 1.5s infinite;
+}
+
+.extra-spin {
+    background: linear-gradient(135deg, #4CC9F0, #00F5FF);
+    color: var(--dark);
+    animation: pulse 1.5s infinite;
+}
   
   /* Анимации */
   @keyframes pulse {
