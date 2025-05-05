@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LOOP Case Opening</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <div class="case-container">
+            <div class="unlock-phase" id="unlock-phase">
+                <img src="images/loop-case.png" class="case-image">
+                <div class="unlock-progress">
+                    <div class="progress-bar" id="progress-bar"></div>
+                    <div class="unlock-text">OPENING CASE...</div>
+                </div>
+            </div>
+            
+            <div class="scroll-phase" id="scroll-phase">
+                <div class="items-track" id="items-track"></div>
+                <div class="center-line"></div>
+            </div>
+            
+            <div class="result-phase" id="result-phase">
+                <div class="item-card">
+                    <div class="item-glow"></div>
+                    <img id="won-item-image" src="" alt="Won Item">
+                    <div class="item-details">
+                        <h2 id="won-item-name"></h2>
+                        <div class="rarity-badge" id="rarity-badge"></div>
+                        <p id="won-item-flavor"></p>
+                    </div>
+                </div>
+                <button class="continue-btn" id="continue-btn">CONTINUE</button>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <div class="balance">
+                <span id="balance">5</span> 🔄
+            </div>
+            <button class="open-btn" id="open-btn">OPEN FOR 1 🔄</button>
+        </div>
+    </div>
+
+    <audio id="unlock-sound" src="sounds/unlock.mp3"></audio>
+    <audio id="scroll-sound" src="sounds/scroll.mp3"></audio>
+    <audio id="slowdown-sound" src="sounds/slowdown.mp3"></audio>
+    <audio id="win-sound" src="sounds/win.mp3"></audio>
+
+    <script src="app.js"></script>
+</body>
+</html>
