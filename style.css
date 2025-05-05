@@ -11,10 +11,7 @@
     --neon-pink: #FF10F0;
     
     /* Редкости */
-    --common: #ADB5BD;
-    --rare: #4CC9F0;
-    --mythical: #4895EF;
-    --legendary: #4361EE;
+ 
     
     /* Градиенты */
     --primary-gradient: linear-gradient(135deg, var(--primary), var(--primary-dark));
@@ -405,11 +402,7 @@
     color: var(--dark);
   }
   
-  .rare { 
-    background: var(--rare); 
-    color: white;
-    box-shadow: 0 0 10px var(--rare);
-  }
+
   
   .mythical { 
     background: var(--mythical); 
