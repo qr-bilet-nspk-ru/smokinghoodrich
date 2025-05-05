@@ -3,139 +3,160 @@ document.addEventListener('DOMContentLoaded', () => {
     tg.expand();
     tg.enableClosingConfirmation();
 
-    // Элементы интерфейса
-    const unlockPhase = document.getElementById('unlock-phase');
-    const scrollPhase = document.getElementById('scroll-phase');
-    const resultPhase = document.getElementById('result-phase');
-    const progressBar = document.getElementById('progress-bar');
-    const itemsTrack = document.getElementById('items-track');
-    const wonItemImage = document.getElementById('won-item-image');
-    const wonItemName = document.getElementById('won-item-name');
-    const wonItemFlavor = document.getElementById('won-item-flavor');
-    const rarityBadge = document.getElementById('rarity-badge');
-    const openBtn = document.getElementById('open-btn');
-    const continueBtn = document.getElementById('continue-btn');
-    const balanceEl = document.getElementById('balance');
-    const inventoryGrid = document.getElementById('inventory-grid');
-    const tabButtons = document.querySelectorAll('.tab-btn');
+    const elements = {
+        unlockPhase: document.getElementById('unlock-phase'),
+        scrollPhase: document.getElementById('scroll-phase'),
+        resultPhase: document.getElementById('result-phase'),
+        progressBar: document.getElementById('progress-bar'),
+        itemsTrack: document.getElementById('items-track'),
+        wonItemImage: document.getElementById('won-item-image'),
+        wonItemName: document.getElementById('won-item-name'),
+        wonItemFlavor: document.getElementById('won-item-flavor'),
+        rarityBadge: document.getElementById('rarity-badge'),
+        openBtn: document.getElementById('open-btn'),
+        continueBtn: document.getElementById('continue-btn'),
+        fastOpenBtn: document.getElementById('fast-open-btn'),
+        balanceEl: document.getElementById('balance'),
+        inventoryCounter: document.getElementById('inventory-counter'),
+        freeCaseTimer: document.getElementById('free-case-timer'),
+        caseImage: document.querySelector('.case-image')
+    };
 
-    // Звуки
-    const unlockSound = document.getElementById('unlock-sound');
-    const scrollSound = document.getElementById('scroll-sound');
-    const slowdownSound = document.getElementById('slowdown-sound');
-    const winSound = document.getElementById('win-sound');
-
-    // Предметы
     const items = [
-        { name: "TROPIC MINT", image: "images/items/tropic-mint.png", flavor: "Освежающая мята с тропическими нотами", rarity: "rare", strength: "3/5" },
-        { name: "WINTERGREEN", image: "images/items/wintergreen.png", flavor: "Классический зимний вкус", rarity: "mythical", strength: "4/5" },
-        { name: "BLUEBERRY", image: "images/items/blueberry.png", flavor: "Сладкая черника с ментолом", rarity: "rare", strength: "2/5" },
-        { name: "ELDERFLOWER", image: "images/items/elderflower.png", flavor: "Нежный цветочный вкус бузины", rarity: "legendary", strength: "1/5" },
-        { name: "JUICY PEACH", image: "images/items/peach.png", flavor: "Сочный персик с холодком", rarity: "common", strength: "2/5" }
+        { name: "🍉 Арбуз", image: "images/items/watermelon.png", flavor: "Сочный летний вкус", rarity: "common", strength: "2/5" },
+        { name: "🔋 Энергетик", image: "images/items/energy.png", flavor: "Заряд бодрости", rarity: "rare", strength: "4/5" },
+        { name: "🍑 Персик", image: "images/items/peach.png", flavor: "Нежная сладость", rarity: "common", strength: "1/5" },
+        { name: "🍏 Яблоко", image: "images/items/apple.png", flavor: "Классическая свежесть", rarity: "common", strength: "2/5" },
+        { name: "🍓 Клубника", image: "images/items/strawberry.png", flavor: "Ягодный взрыв", rarity: "rare", strength: "3/5" },
+        { name: "🎈 Бабл-Гам", image: "images/items/bubblegum.png", flavor: "Детская радость", rarity: "mythical", strength: "1/5" },
+        { name: "🫐 Ежевика", image: "images/items/blackberry.png", flavor: "Терпкая глубина", rarity: "rare", strength: "3/5" },
+        { name: "🍇 Виноград", image: "images/items/grape.png", flavor: "Виноградный коктейль", rarity: "common", strength: "2/5" },
+        { name: "🥶 Холодок", image: "images/items/ice.png", flavor: "Ледяная свежесть", rarity: "legendary", strength: "5/5" },
+        { name: "🍒 Вишня", image: "images/items/cherry.png", flavor: "Терпкая сладость", rarity: "mythical", strength: "4/5" },
+        { name: "🫐 Черника", image: "images/items/blueberry.png", flavor: "Лесная ягода", rarity: "rare", strength: "3/5" }
     ];
 
-    // Состояние
-    let balance = 5;
-    let isOpening = false;
-    let scrollSpeed = 0;
-    let scrollPosition = 0;
-    let targetPosition = 0;
-    let animationFrameId = null;
-    let selectedItem = null;
-    let userId = tg.initDataUnsafe.user?.id || 'default_user';
+    const config = {
+        scrollDuration: 4000,
+        itemWidth: 160
+    };
 
-    // Инициализация
-    initTabs();
-    loadInventory();
-
-    // Функции
-    function initTabs() {
-        tabButtons.forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.tab-btn, .tab-content').forEach(el => {
-                    el.classList.remove('active');
-                });
-                btn.classList.add('active');
-                document.getElementById(`${btn.dataset.tab}-tab`).classList.add('active');
-                
-                if (btn.dataset.tab === 'inventory') {
-                    loadInventory();
-                }
-            });
-        });
-    }
-
-    async function loadInventory() {
-        try {
-            // В реальном приложении здесь будет fetch к вашему API
-            const mockInventory = [
-                { name: "TROPIC MINT", image: "images/items/tropic-mint.png", rarity: "rare" },
-                { name: "BLUEBERRY", image: "images/items/blueberry.png", rarity: "rare" }
-            ];
-            
-            renderInventory(mockInventory);
-        } catch (error) {
-            console.error('Ошибка загрузки инвентаря:', error);
+    const state = {
+        balance: 5,
+        isOpening: false,
+        scrollPosition: 0,
+        targetPosition: 0,
+        animationFrameId: null,
+        selectedItem: null,
+        inventory: [],
+        freeCaseTimeLeft: 3600,
+        audio: {
+            unlock: document.getElementById('unlock-sound'),
+            scroll: document.getElementById('scroll-sound'),
+            slowdown: document.getElementById('slowdown-sound'),
+            win: document.getElementById('win-sound')
         }
+    };
+
+    init();
+
+    function init() {
+        fillItemsTrack();
+        setupEventListeners();
+        startFreeCaseTimer();
+        updateInventoryCounter();
+        elements.caseImage.style.animation = "float 4s ease-in-out infinite";
     }
 
-    function renderInventory(items) {
-        inventoryGrid.innerHTML = '';
-        items.forEach(item => {
-            const itemEl = document.createElement('div');
-            itemEl.className = 'inventory-item';
-            itemEl.innerHTML = `
-                <img src="${item.image}" alt="${item.name}">
-                <h3>${item.name}</h3>
-                <span class="rarity-badge ${item.rarity}">${item.rarity.toUpperCase()}</span>
-            `;
-            inventoryGrid.appendChild(itemEl);
+    function setupEventListeners() {
+        elements.openBtn.addEventListener('click', () => startOpening(false));
+        elements.fastOpenBtn.addEventListener('click', () => {
+            if (state.balance >= 3) startOpening(true);
         });
+        elements.continueBtn.addEventListener('click', continueAfterWin);
     }
 
-    function fillItemsTrack() {
-        itemsTrack.innerHTML = '';
-        for (let i = 0; i < 20; i++) {
-            const shuffled = [...items].sort(() => 0.5 - Math.random());
-            shuffled.forEach(item => {
-                const itemElement = document.createElement('div');
-                itemElement.className = 'scroll-item';
-                itemElement.innerHTML = `<img src="${item.image}" alt="${item.name}"><h3>${item.name}</h3>`;
-                itemElement.dataset.item = JSON.stringify(item);
-                itemsTrack.appendChild(itemElement);
-            });
-        }
-    }
+    function startOpening(isFast) {
+        if (state.isOpening || state.balance < (isFast ? 3 : 1)) return;
+        state.isOpening = true;
+        state.balance -= isFast ? 3 : 1;
+        elements.balanceEl.textContent = state.balance;
 
-    function animateScroll() {
-        const deceleration = 0.6;
+        elements.progressBar.style.width = '0%';
+        elements.unlockPhase.style.opacity = '1';
+        elements.scrollPhase.style.display = 'none';
+        elements.resultPhase.style.display = 'none';
 
-        if (scrollSpeed > 0) {
-            scrollSpeed = Math.max(scrollSpeed - deceleration, 0);
-            scrollPosition += scrollSpeed;
-        } else if (scrollSpeed === 0 && Math.abs(scrollPosition - targetPosition) > 1) {
-            scrollPosition += (targetPosition - scrollPosition) * 0.08;
+        state.audio.unlock.currentTime = 0;
+        state.audio.unlock.play();
+
+        if (isFast) {
+            elements.progressBar.style.width = '100%';
+            setTimeout(startScrolling, 100);
         } else {
-            cancelAnimationFrame(animationFrameId);
-            animationFrameId = null;
-            finishOpening();
-            return;
+            animateProgressBar();
         }
-
-        itemsTrack.style.transform = `translateX(-${scrollPosition}px)`;
-        checkCenterItem();
-        animationFrameId = requestAnimationFrame(animateScroll);
     }
 
-    function checkCenterItem() {
+    function animateProgressBar() {
+        let progress = 0;
+        const interval = setInterval(() => {
+            progress += 2;
+            elements.progressBar.style.width = `${progress}%`;
+            if (progress >= 100) {
+                clearInterval(interval);
+                startScrolling();
+            }
+        }, 20);
+    }
+
+    function startScrolling() {
+        elements.unlockPhase.style.opacity = '0';
+        elements.scrollPhase.style.display = 'flex';
+        fillItemsTrack();
+
+        const firstItem = document.querySelector('.scroll-item');
+        config.itemWidth = firstItem.offsetWidth + 10;
+
+        const stopIndex = 30 + Math.floor(Math.random() * 10);
+        state.targetPosition = stopIndex * config.itemWidth - (window.innerWidth / 2 - config.itemWidth / 2);
+        state.scrollPosition = 0;
+
+        state.audio.scroll.currentTime = 0;
+        state.audio.scroll.loop = true;
+        state.audio.scroll.play();
+
+        state.startTime = performance.now();
+        requestAnimationFrame(animateScroll);
+    }
+
+    function animateScroll(timestamp) {
+        const elapsed = timestamp - state.startTime;
+        const progress = Math.min(elapsed / config.scrollDuration, 1);
+        const easedProgress = 1 - Math.pow(1 - progress, 3); // easeOutCubic
+        const currentPosition = easedProgress * state.targetPosition;
+
+        elements.itemsTrack.style.transform = `translateX(-${currentPosition}px)`;
+        state.scrollPosition = currentPosition;
+
+        updateSelectedItem();
+
+        if (progress < 1) {
+            requestAnimationFrame(animateScroll);
+        } else {
+            finishOpening();
+        }
+    }
+
+    function updateSelectedItem() {
         const centerX = window.innerWidth / 2;
         let closestItem = null;
         let minDistance = Infinity;
 
         document.querySelectorAll('.scroll-item').forEach(item => {
             item.classList.remove('selected');
-            const itemRect = item.getBoundingClientRect();
-            const itemCenter = itemRect.left + itemRect.width / 2;
+            const rect = item.getBoundingClientRect();
+            const itemCenter = rect.left + rect.width / 2;
             const distance = Math.abs(itemCenter - centerX);
 
             if (distance < minDistance) {
@@ -146,122 +167,85 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (closestItem) {
             closestItem.classList.add('selected');
-            selectedItem = JSON.parse(closestItem.dataset.item);
+            state.selectedItem = JSON.parse(closestItem.dataset.item);
         }
     }
 
-    function startOpening() {
-        if (isOpening || balance < 1) return;
-
-        balance--;
-        balanceEl.textContent = balance;
-        isOpening = true;
-        openBtn.disabled = true;
-
-        unlockPhase.style.opacity = '1';
-        scrollPhase.style.display = 'none';
-        resultPhase.style.display = 'none';
-
-        unlockSound.play();
-
-        let progress = 0;
-        const progressInterval = setInterval(() => {
-            progress += 2;
-            progressBar.style.width = `${progress}%`;
-            if (progress >= 100) {
-                clearInterval(progressInterval);
-                startScrolling();
-            }
-        }, 30);
-    }
-
-    function startScrolling() {
-        unlockPhase.style.opacity = '0';
-        scrollPhase.style.display = 'flex';
-
-        fillItemsTrack();
-
-        scrollPosition = 0;
-        scrollSpeed = 30;
-
-        const itemWidth = document.querySelector('.scroll-item').offsetWidth;
-        const trackPadding = window.innerWidth / 2 - itemWidth / 2;
-        const totalItems = itemsTrack.children.length;
-
-        const stopIndex = Math.floor(Math.random() * totalItems);
-        targetPosition = stopIndex * itemWidth - trackPadding;
-
-        scrollSound.currentTime = 0;
-        scrollSound.loop = true;
-        scrollSound.play();
-
-        animationFrameId = requestAnimationFrame(animateScroll);
-
-        setTimeout(() => {
-            scrollSpeed = 15;
-            scrollSound.loop = false;
-            slowdownSound.play();
-        }, 2000);
-
-        setTimeout(() => scrollSpeed = 5, 3000);
-        setTimeout(() => scrollSpeed = 0, 4000);
-    }
-
     function finishOpening() {
-        scrollPhase.style.display = 'none';
-        resultPhase.style.display = 'flex';
+        elements.scrollPhase.style.display = 'none';
+        elements.resultPhase.style.display = 'flex';
 
-        wonItemImage.src = selectedItem.image;
-        wonItemName.textContent = selectedItem.name;
-        wonItemFlavor.textContent = selectedItem.flavor;
+        elements.wonItemImage.src = state.selectedItem.image;
+        elements.wonItemName.textContent = state.selectedItem.name;
+        elements.wonItemFlavor.textContent = state.selectedItem.flavor;
 
         const rarityText = {
             'common': 'ОБЫЧНЫЙ',
             'rare': 'РЕДКИЙ',
             'mythical': 'МИФИЧЕСКИЙ',
             'legendary': 'ЛЕГЕНДАРНЫЙ'
-        }[selectedItem.rarity];
+        }[state.selectedItem.rarity];
 
-        rarityBadge.textContent = rarityText;
-        rarityBadge.className = `rarity-badge ${selectedItem.rarity}`;
+        elements.rarityBadge.textContent = rarityText;
+        elements.rarityBadge.className = `rarity-badge ${state.selectedItem.rarity}`;
 
-        // Вибрация
-        if (window.navigator.vibrate) {
-            window.navigator.vibrate([100, 50, 100]);
-        }
+        state.inventory.push(state.selectedItem);
+        updateInventoryCounter();
 
-        winSound.play();
-        saveItemToInventory(selectedItem);
-    }
+        state.audio.scroll.pause();
+        state.audio.win.currentTime = 0;
+        state.audio.win.play();
 
-    function saveItemToInventory(item) {
-        // В реальном приложении здесь будет fetch к вашему API
-        console.log('Предмет добавлен в инвентарь:', item);
-        loadInventory(); // Обновляем инвентарь
+        if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
     }
 
     function continueAfterWin() {
-        resultPhase.style.display = 'none';
-        unlockPhase.style.opacity = '1';
-        progressBar.style.width = '0%';
-        isOpening = false;
+        elements.resultPhase.style.display = 'none';
+        elements.unlockPhase.style.opacity = '1';
+        state.isOpening = false;
 
-        if (balance === 0) {
-            balance = 3;
-            balanceEl.textContent = balance;
+        if (state.balance === 0) {
+            state.balance = 3;
+            elements.balanceEl.textContent = state.balance;
         }
-
-        openBtn.disabled = false;
     }
 
-    // Обработчики событий
-    openBtn.addEventListener('click', startOpening);
-    continueBtn.addEventListener('click', continueAfterWin);
+    function fillItemsTrack() {
+        elements.itemsTrack.innerHTML = '';
+        for (let i = 0; i < 40; i++) {
+            [...items].sort(() => Math.random() - 0.5).forEach(item => {
+                const itemElement = document.createElement('div');
+                itemElement.className = 'scroll-item';
+                itemElement.innerHTML = `
+                    <img src="${item.image}" alt="${item.name}">
+                    <h3>${item.name}</h3>
+                `;
+                itemElement.dataset.item = JSON.stringify(item);
+                elements.itemsTrack.appendChild(itemElement);
+            });
+        }
+    }
 
-    // Инициализация трека при загрузке
-    fillItemsTrack();
+    function startFreeCaseTimer() {
+        setInterval(() => {
+            state.freeCaseTimeLeft--;
+            const m = Math.floor(state.freeCaseTimeLeft / 60);
+            const s = state.freeCaseTimeLeft % 60;
+            elements.freeCaseTimer.textContent = `${m}m ${s}s`;
 
-    // Telegram Main Button
+            if (state.freeCaseTimeLeft <= 0) {
+                state.balance++;
+                elements.balanceEl.textContent = state.balance;
+                state.freeCaseTimeLeft = 3600;
+            }
+        }, 1000);
+    }
+
+    function updateInventoryCounter() {
+        elements.inventoryCounter.textContent = `Предметов: ${state.inventory.length}`;
+    }
+
+    // Telegram main button
     if (tg.platform !== 'unknown') {
         tg.MainButton.setText("Купить пластинки");
         tg.MainButton.onClick(() => {
@@ -274,8 +258,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 ]
             }, (btnId) => {
                 if (btnId) {
-                    balance += parseInt(btnId);
-                    balanceEl.textContent = balance;
+                    state.balance += parseInt(btnId);
+                    elements.balanceEl.textContent = state.balance;
                 }
             });
         });
