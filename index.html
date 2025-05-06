@@ -10,44 +10,57 @@
 </head>
 <body>
     <div class="container">
+        <div class="theme-switcher">
+            <button id="theme-toggle">🌙</button>
+        </div>
+        
         <div class="case-container">
             <div class="unlock-phase" id="unlock-phase">
                 <img src="images/loop-case.png" class="case-image">
                 <div class="unlock-progress">
                     <div class="progress-bar" id="progress-bar"></div>
-                    <div class="unlock-text">OPENING CASE...</div>
+                    <div class="unlock-text">ОТКРЫТИЕ КЕЙСА...</div>
                 </div>
             </div>
             
             <div class="scroll-phase" id="scroll-phase">
-                <div class="items-track" id="items-track"></div>
-                <div class="center-line"></div>
+                <div class="multi-track-container" id="multi-track-container"></div>
             </div>
             
             <div class="result-phase" id="result-phase">
-                <div class="item-card">
-                    <div class="item-glow"></div>
-                    <img id="won-item-image" src="" alt="Won Item">
-                    <div class="item-details">
-                        <h2 id="won-item-name"></h2>
-                        <div class="rarity-badge" id="rarity-badge"></div>
-                        <p id="won-item-flavor"></p>
-                    </div>
-                </div>
-                <button class="continue-btn" id="continue-btn">CONTINUE</button>
+                <div class="multi-result-container" id="multi-result-container"></div>
+                <button class="continue-btn" id="continue-btn">ПРОДОЛЖИТЬ</button>
             </div>
         </div>
         
         <div class="controls">
-            <div class="balance">
-                <span id="balance">5</span> 🔄
-                <div class="free-case-timer" id="free-case-timer"></div>
+            <div class="balance-container">
+                <div class="balance">
+                    <span id="balance">1</span> 🔄
+                    <div class="free-case-timer" id="free-case-timer">24h 00m</div>
+                </div>
+                <button class="profile-btn" id="profile-btn">ПРОФИЛЬ</button>
             </div>
-            <div class="buttons">
-                <button class="open-btn" id="open-btn">OPEN FOR 1 🔄</button>
-                <button class="fast-open-btn" id="fast-open-btn">FAST OPEN (3 🔄)</button>
+            
+            <div class="open-options">
+                <button class="open-option active" data-count="1">1 КЕЙС</button>
+                <button class="open-option" data-count="2">2 КЕЙСА</button>
+                <button class="open-option" data-count="3">3 КЕЙСА</button>
             </div>
-            <div class="inventory-counter" id="inventory-counter">Items: 0</div>
+            
+            <button class="open-btn" id="open-btn">ОТКРЫТЬ 1 КЕЙС</button>
+        </div>
+        
+        <div class="inventory-modal" id="inventory-modal">
+            <div class="inventory-content">
+                <h2>ПРОФИЛЬ</h2>
+                <div class="stats">
+                    <p>Всего открыто: <span id="total-opened">0</span></p>
+                    <p>Баланс: <span id="profile-balance">1</span> 🔄</p>
+                </div>
+                <div class="inventory-items" id="inventory-items"></div>
+                <button class="close-inventory" id="close-inventory">ЗАКРЫТЬ</button>
+            </div>
         </div>
     </div>
 
@@ -55,6 +68,7 @@
     <audio id="scroll-sound" src="sounds/scroll.mp3"></audio>
     <audio id="slowdown-sound" src="sounds/slowdown.mp3"></audio>
     <audio id="win-sound" src="sounds/win.mp3"></audio>
+    <audio id="lose-sound" src="sounds/lose.mp3"></audio>
 
     <script src="app.js"></script>
 </body>

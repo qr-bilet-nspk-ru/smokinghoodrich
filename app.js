@@ -3,130 +3,342 @@ document.addEventListener('DOMContentLoaded', () => {
     tg.expand();
     tg.enableClosingConfirmation();
 
+    // Элементы
     const elements = {
         unlockPhase: document.getElementById('unlock-phase'),
         scrollPhase: document.getElementById('scroll-phase'),
         resultPhase: document.getElementById('result-phase'),
         progressBar: document.getElementById('progress-bar'),
-        itemsTrack: document.getElementById('items-track'),
-        wonItemImage: document.getElementById('won-item-image'),
-        wonItemName: document.getElementById('won-item-name'),
-        wonItemFlavor: document.getElementById('won-item-flavor'),
-        rarityBadge: document.getElementById('rarity-badge'),
-        openBtn: document.getElementById('open-btn'),
+        multiTrackContainer: document.getElementById('multi-track-container'),
+        multiResultContainer: document.getElementById('multi-result-container'),
         continueBtn: document.getElementById('continue-btn'),
-        fastOpenBtn: document.getElementById('fast-open-btn'),
         balanceEl: document.getElementById('balance'),
-        inventoryCounter: document.getElementById('inventory-counter'),
+        profileBalance: document.getElementById('profile-balance'),
         freeCaseTimer: document.getElementById('free-case-timer'),
-        caseImage: document.querySelector('.case-image')
+        caseImage: document.querySelector('.case-image'),
+        themeToggle: document.getElementById('theme-toggle'),
+        inventoryModal: document.getElementById('inventory-modal'),
+        inventoryItems: document.getElementById('inventory-items'),
+        closeInventory: document.getElementById('close-inventory'),
+        totalOpened: document.getElementById('total-opened'),
+        openOptions: document.querySelectorAll('.open-option'),
+        openBtn: document.getElementById('open-btn'),
+        profileBtn: document.getElementById('profile-btn')
     };
 
-    // Полный список предметов с вероятностями
+    // Предметы
     const items = [
-        // LOOP пачки (редкие)
-        { name: "🍉 Арбуз", image: "images/items/watermelon.png", flavor: "Сочный летний вкус", rarity: "rare", strength: "2/5", probability: 2 },
-        { name: "🔋 Энергетик", image: "images/items/energy.png", flavor: "Заряд бодрости", rarity: "rare", strength: "4/5", probability: 2 },
-        { name: "🍑 Персик", image: "images/items/peach.png", flavor: "Нежная сладость", rarity: "rare", strength: "1/5", probability: 2 },
-        { name: "🍏 Яблоко", image: "images/items/apple.png", flavor: "Классическая свежесть", rarity: "rare", strength: "2/5", probability: 2 },
-        { name: "🍓 Клубника", image: "images/items/strawberry.png", flavor: "Ягодный взрыв", rarity: "rare", strength: "3/5", probability: 2 },
-        { name: "🎈 Бабл-Гам", image: "images/items/bubblegum.png", flavor: "Детская радость", rarity: "mythical", strength: "1/5", probability: 2 },
-        { name: "🫐 Ежевика", image: "images/items/blackberry.png", flavor: "Терпкая глубина", rarity: "rare", strength: "3/5", probability: 2 },
-        { name: "🍇 Виноград", image: "images/items/grape.png", flavor: "Виноградный коктейль", rarity: "rare", strength: "2/5", probability: 2 },
-        { name: "🥶 Холодок", image: "images/items/ice.png", flavor: "Ледяная свежесть", rarity: "legendary", strength: "5/5", probability: 2 },
-        { name: "🍒 Вишня", image: "images/items/cherry.png", flavor: "Терпкая сладость", rarity: "mythical", strength: "4/5", probability: 2 },
-        { name: "🫐 Черника", image: "images/items/blueberry.png", flavor: "Лесная ягода", rarity: "rare", strength: "3/5", probability: 2 },
-        
-        // Скидки
-        { name: "5% Скидка", image: "images/items/discount.png", flavor: "На ваш следующий заказ", rarity: "discount-5", probability: 8 },
-        { name: "10% Скидка", image: "images/items/discount.png", flavor: "На ваш следующий заказ", rarity: "discount-10", probability: 5 },
-        { name: "15% Скидка", image: "images/items/discount.png", flavor: "На ваш следующий заказ", rarity: "discount-15", probability: 4 },
-        { name: "20% Скидка", image: "images/items/discount.png", flavor: "На ваш следующий заказ", rarity: "discount-20", probability: 3 },
-        
-        // Другие награды
-        { name: "Ничего", image: "images/items/nothing.png", flavor: "Попробуйте еще раз!", rarity: "nothing", probability: 50 },
+        { name: "🍉 Арбуз", image: "images/items/watermelon.png", flavor: "Сочный летний вкус", strength: "2/5", probability: 10 },
+        { name: "🔋 Энергетик", image: "images/items/energy.png", flavor: "Заряд бодрости", strength: "4/5", probability: 8 },
+        { name: "🍑 Персик", image: "images/items/peach.png", flavor: "Нежная сладость", strength: "1/5", probability: 10 },
+        { name: "🍏 Яблоко", image: "images/items/apple.png", flavor: "Классическая свежесть", strength: "2/5", probability: 10 },
+        { name: "🍓 Клубника", image: "images/items/strawberry.png", flavor: "Ягодный взрыв", strength: "3/5", probability: 8 },
+        { name: "🎈 Бабл-Гам", image: "images/items/bubblegum.png", flavor: "Детская радость", strength: "1/5", probability: 5 },
+        { name: "🫐 Ежевика", image: "images/items/blackberry.png", flavor: "Терпкая глубина", strength: "3/5", probability: 8 },
+        { name: "🍇 Виноград", image: "images/items/grape.png", flavor: "Виноградный коктейль", strength: "2/5", probability: 10 },
+        { name: "🥶 Холодок", image: "images/items/ice.png", flavor: "Ледяная свежесть", strength: "5/5", probability: 3 },
+        { name: "🍒 Вишня", image: "images/items/cherry.png", flavor: "Терпкая сладость", strength: "4/5", probability: 5 },
+        { name: "🫐 Черника", image: "images/items/blueberry.png", flavor: "Лесная ягода", strength: "3/5", probability: 8 },
+        { name: "5% Скидка", image: "images/items/discount.png", flavor: "На ваш следующий заказ", rarity: "discount-5", probability: 5 },
+        { name: "10% Скидка", image: "images/items/discount.png", flavor: "На ваш следующий заказ", rarity: "discount-10", probability: 3 },
+        { name: "15% Скидка", image: "images/items/discount.png", flavor: "На ваш следующий заказ", rarity: "discount-15", probability: 2 },
+        { name: "20% Скидка", image: "images/items/discount.png", flavor: "На ваш следующий заказ", rarity: "discount-20", probability: 1 },
+        { name: "Ничего", image: "images/items/nothing.png", flavor: "Попробуйте еще раз!", rarity: "nothing", probability: 15 },
         { name: "Бесплатная доставка", image: "images/items/shipping.png", flavor: "При заказе от 10 пачек", rarity: "free-shipping", probability: 2 },
         { name: "Дополнительный прокрут", image: "images/items/extra-spin.png", flavor: "Откройте еще один кейс бесплатно", rarity: "extra-spin", probability: 6 }
     ];
 
     const config = {
-        scrollDuration: 4000,
-        itemWidth: 160
+        scrollDuration: 200,
+        itemWidth: 160,
+        itemsCount: 120,
+        acceleration: 0.14,
+        deceleration: 0.01,
+        freeCaseInterval: 86400
     };
 
+    // Состояние
     const state = {
-        balance: 5,
+        balance: localStorage.getItem('balance') ? parseInt(localStorage.getItem('balance')) : 100,
         isOpening: false,
-        scrollPosition: 0,
-        targetPosition: 0,
-        animationFrameId: null,
-        selectedItem: null,
-        inventory: [],
-        freeCaseTimeLeft: 3600,
-        audio: {
-            unlock: document.getElementById('unlock-sound'),
-            scroll: document.getElementById('scroll-sound'),
-            slowdown: document.getElementById('slowdown-sound'),
-            win: document.getElementById('win-sound'),
-            lose: document.getElementById('lose-sound')
-        }
+        inventory: JSON.parse(localStorage.getItem('inventory')) || [],
+        stats: JSON.parse(localStorage.getItem('stats')) || { totalOpened: 0 },
+        freeCaseTimeLeft: localStorage.getItem('freeCaseTimeLeft') ? parseInt(localStorage.getItem('freeCaseTimeLeft')) : config.freeCaseInterval,
+        selectedCount: 1,
+        lastCaseTime: localStorage.getItem('lastCaseTime') ? parseInt(localStorage.getItem('lastCaseTime')) : null,
+        wonItems: [],
+        animationFrameIds: [],
+        velocity: 0,
+        startTime: null,
+        lastTime: null
     };
 
+    // Инициализация
     init();
 
     function init() {
+        checkFreeCase();
         setupEventListeners();
         startFreeCaseTimer();
-        updateInventoryCounter();
-        elements.caseImage.style.animation = "float 4s ease-in-out infinite";
+        updateUI();
+        applyTheme(localStorage.getItem('theme') || 'dark');
+        document.querySelector('.open-option[data-count="1"]').classList.add('active');
     }
 
     function setupEventListeners() {
-        elements.openBtn.addEventListener('click', () => startOpening(false));
-        elements.fastOpenBtn.addEventListener('click', () => {
-            if (state.balance >= 3) startOpening(true);
-        });
+        elements.openBtn.addEventListener('click', startOpening);
         elements.continueBtn.addEventListener('click', continueAfterWin);
+        elements.themeToggle.addEventListener('click', toggleTheme);
+        elements.profileBtn.addEventListener('click', showInventory);
+        elements.closeInventory.addEventListener('click', hideInventory);
+        
+        elements.openOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                state.selectedCount = parseInt(option.dataset.count);
+                elements.openOptions.forEach(opt => opt.classList.remove('active'));
+                option.classList.add('active');
+                updateOpenButtonText();
+            });
+        });
     }
 
-    function startOpening(isFast) {
-        if (state.isOpening || state.balance < (isFast ? 3 : 1)) return;
-        state.isOpening = true;
-        state.balance -= isFast ? 3 : 1;
-        elements.balanceEl.textContent = state.balance;
-
-        elements.progressBar.style.width = '0%';
-        elements.unlockPhase.style.opacity = '1';
-        elements.scrollPhase.style.display = 'none';
-        elements.resultPhase.style.display = 'none';
-
-        state.audio.unlock.currentTime = 0;
-        state.audio.unlock.play();
-
-        if (isFast) {
-            elements.progressBar.style.width = '100%';
-            setTimeout(startScrolling, 100);
-        } else {
-            animateProgressBar();
+    function checkFreeCase() {
+        if (!state.lastCaseTime) return;
+        
+        const now = Math.floor(Date.now() / 1000);
+        const timePassed = now - state.lastCaseTime;
+        
+        if (timePassed >= config.freeCaseInterval) {
+            const freeCases = Math.floor(timePassed / config.freeCaseInterval);
+            state.balance += freeCases;
+            state.lastCaseTime = now;
+            saveState();
+            updateUI();
         }
     }
 
-    function animateProgressBar() {
-        let progress = 0;
-        const interval = setInterval(() => {
-            progress += 2;
-            elements.progressBar.style.width = `${progress}%`;
-            if (progress >= 100) {
-                clearInterval(interval);
-                startScrolling();
-            }
-        }, 20);
+    function startOpening() {
+        if (state.isOpening || state.balance < state.selectedCount) return;
+        
+        state.isOpening = true;
+        state.balance -= state.selectedCount;
+        state.wonItems = [];
+        
+        updateUI();
+        animateOpening();
     }
 
-    function fillItemsTrack() {
-        elements.itemsTrack.innerHTML = '';
+    function animateOpening() {
+        elements.caseImage.style.transform = 'rotateY(180deg) scale(1.2)';
+        setTimeout(() => {
+            elements.caseImage.style.transform = 'rotateY(0deg) scale(1)';
+            startScrolling();
+        }, 1000);
+    }
+
+    function startScrolling() {
+        elements.unlockPhase.style.opacity = '0';
+        elements.scrollPhase.style.display = 'flex';
+        elements.multiTrackContainer.innerHTML = '';
         
-        // Создаем взвешенный массив предметов
+        for (let i = 0; i < state.selectedCount; i++) {
+            const trackContainer = document.createElement('div');
+            trackContainer.className = 'track-container';
+            
+            const centerLine = document.createElement('div');
+            centerLine.className = 'track-center-line';
+            trackContainer.appendChild(centerLine);
+            
+            const itemsTrack = document.createElement('div');
+            itemsTrack.className = 'items-track';
+            trackContainer.appendChild(itemsTrack);
+            
+            elements.multiTrackContainer.appendChild(trackContainer);
+            fillItemsTrack(itemsTrack);
+        }
+        
+        playSound('scroll');
+        animateAllTracks();
+    }
+
+    function animateAllTracks() {
+        const trackContainers = document.querySelectorAll('.track-container');
+        state.animationFrameIds = [];
+        
+        trackContainers.forEach((container, index) => {
+            const track = container.querySelector('.items-track');
+            const centerLine = container.querySelector('.track-center-line');
+            const centerLineRect = centerLine.getBoundingClientRect();
+            const centerX = centerLineRect.left + centerLineRect.width / 2;
+            
+            const firstItem = track.querySelector('.scroll-item');
+            const itemWidth = firstItem.offsetWidth + 20;
+            
+            const stopIndex = Math.floor(Math.random() * (config.itemsCount - 50)) + 30;
+            const targetPosition = stopIndex * itemWidth - (window.innerWidth / 2 - itemWidth / 2);
+            
+            let startTime = null;
+            let lastTime = null;
+            let currentPosition = 0;
+            let velocity = 0.5;
+            
+            function animateTrack(timestamp) {
+                if (!startTime) startTime = timestamp;
+                if (!lastTime) lastTime = timestamp;
+                
+                const elapsed = timestamp - startTime;
+                const deltaTime = timestamp - lastTime;
+                lastTime = timestamp;
+                
+                // Ускорение в начале
+                if (elapsed < config.scrollDuration * 0.7) {
+                    velocity += config.acceleration * deltaTime;
+                } 
+                // Замедление в конце
+                else {
+                    velocity = Math.max(0.05, velocity - config.deceleration * deltaTime);
+                }
+                
+                currentPosition += velocity * deltaTime;
+                
+                // Плавная остановка
+                if (currentPosition > targetPosition * 0.9) {
+                    velocity = Math.max(0.01, velocity * 0.95);
+                }
+                
+                // Финализация позиции
+                if (currentPosition >= targetPosition) {
+                    currentPosition = targetPosition;
+                    track.style.transform = `translateX(-${currentPosition}px)`;
+                    updateSelectedItem(track, container, index);
+                    
+                    if (index === trackContainers.length - 1) {
+                        setTimeout(finishOpening, 500);
+                    }
+                    return;
+                }
+                
+                track.style.transform = `translateX(-${currentPosition}px)`;
+                
+                // Обновление выбранного предмета
+                if (elapsed > config.scrollDuration * 0.8) {
+                    updateSelectedItem(track, container, index);
+                }
+                
+                state.animationFrameIds[index] = requestAnimationFrame(animateTrack);
+            }
+            
+            state.animationFrameIds[index] = requestAnimationFrame(animateTrack);
+        });
+    }
+
+    function updateSelectedItem(track, container, trackIndex) {
+        const centerLine = container.querySelector('.track-center-line');
+        const centerLineRect = centerLine.getBoundingClientRect();
+        const centerX = centerLineRect.left + centerLineRect.width / 2;
+        
+        let closestItem = null;
+        let minDistance = Infinity;
+        
+        track.querySelectorAll('.scroll-item').forEach(item => {
+            item.classList.remove('selected');
+            const rect = item.getBoundingClientRect();
+            const itemCenter = rect.left + rect.width / 2;
+            const distance = Math.abs(itemCenter - centerX);
+            
+            if (distance < minDistance) {
+                minDistance = distance;
+                closestItem = item;
+            }
+        });
+        
+        if (closestItem) {
+            closestItem.classList.add('selected');
+            const selectedItem = JSON.parse(closestItem.dataset.item);
+            state.wonItems[trackIndex] = selectedItem;
+        }
+    }
+
+    function finishOpening() {
+        document.querySelectorAll('.track-container').forEach((container, index) => {
+            const track = container.querySelector('.items-track');
+            updateSelectedItem(track, container, index);
+        });
+        
+        state.animationFrameIds.forEach(id => cancelAnimationFrame(id));
+        state.animationFrameIds = [];
+        
+        elements.scrollPhase.style.display = 'none';
+        showResults();
+        
+        state.stats.totalOpened += state.selectedCount;
+        state.lastCaseTime = Math.floor(Date.now() / 1000);
+        
+        state.wonItems.forEach(item => {
+            if (item.rarity === 'extra-spin') {
+                state.balance += 1;
+            } else if (item.rarity !== 'nothing') {
+                state.inventory.push(item);
+            }
+        });
+        
+        saveState();
+        updateUI();
+    }
+
+    function showResults() {
+        elements.resultPhase.style.display = 'flex';
+        elements.multiResultContainer.innerHTML = '';
+        
+        state.wonItems.forEach(item => {
+            const itemCard = document.createElement('div');
+            itemCard.className = 'item-card';
+            
+            const itemGlow = document.createElement('div');
+            itemGlow.className = 'item-glow';
+            itemCard.appendChild(itemGlow);
+            
+            const itemImg = document.createElement('img');
+            itemImg.src = item.image;
+            itemImg.alt = item.name;
+            itemCard.appendChild(itemImg);
+            
+            const itemDetails = document.createElement('div');
+            itemDetails.className = 'item-details';
+            
+            const itemName = document.createElement('h2');
+            itemName.textContent = item.name;
+            itemDetails.appendChild(itemName);
+            
+            const rarityBadge = document.createElement('div');
+            rarityBadge.className = `rarity-badge ${item.rarity || 'common'}`;
+            rarityBadge.textContent = getRarityText(item);
+            itemDetails.appendChild(rarityBadge);
+            
+            const itemFlavor = document.createElement('p');
+            itemFlavor.textContent = item.flavor;
+            itemDetails.appendChild(itemFlavor);
+            
+            itemCard.appendChild(itemDetails);
+            elements.multiResultContainer.appendChild(itemCard);
+            
+            if (item.strength === '5/5' || item.rarity === 'extra-spin') {
+                createConfetti();
+            }
+        });
+        
+        playSound(state.wonItems.some(item => item.rarity === 'nothing') ? 'lose' : 'win');
+        if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+    }
+
+    function continueAfterWin() {
+        elements.resultPhase.style.display = 'none';
+        elements.unlockPhase.style.opacity = '1';
+        state.isOpening = false;
+        updateUI();
+    }
+
+    function fillItemsTrack(track) {
         const weightedItems = [];
         items.forEach(item => {
             for (let i = 0; i < item.probability; i++) {
@@ -134,8 +346,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
         
-        // Заполняем трек случайными предметами с учетом вероятностей
-        for (let i = 0; i < 60; i++) { // Увеличил количество предметов
+        for (let i = 0; i < config.itemsCount; i++) {
             const randomIndex = Math.floor(Math.random() * weightedItems.length);
             const randomItem = weightedItems[randomIndex];
             
@@ -146,81 +357,105 @@ document.addEventListener('DOMContentLoaded', () => {
                 <h3>${randomItem.name}</h3>
             `;
             itemElement.dataset.item = JSON.stringify(randomItem);
-            elements.itemsTrack.appendChild(itemElement);
+            track.appendChild(itemElement);
         }
     }
 
-    function startScrolling() {
-        elements.unlockPhase.style.opacity = '0';
-        elements.scrollPhase.style.display = 'flex';
-        fillItemsTrack();
-
-        const firstItem = document.querySelector('.scroll-item');
-        config.itemWidth = firstItem.offsetWidth + 10;
-
-        // Выбираем случайную позицию остановки (в первой половине трека)
-        const stopIndex = 20 + Math.floor(Math.random() * 20);
-        state.targetPosition = stopIndex * config.itemWidth - (window.innerWidth / 2 - config.itemWidth / 2);
-        state.scrollPosition = 0;
-
-        state.audio.scroll.currentTime = 0;
-        state.audio.scroll.loop = true;
-        state.audio.scroll.play();
-
-        state.startTime = performance.now();
-        state.animationFrameId = requestAnimationFrame(animateScroll);
-    }
-
-    function animateScroll(timestamp) {
-        const elapsed = timestamp - state.startTime;
-        const progress = Math.min(elapsed / config.scrollDuration, 1);
-        const easedProgress = 1 - Math.pow(1 - progress, 3);
-        const currentPosition = easedProgress * state.targetPosition;
-
-        elements.itemsTrack.style.transform = `translateX(-${currentPosition}px)`;
-        state.scrollPosition = currentPosition;
-
-        updateSelectedItem();
-
-        if (progress < 1) {
-            state.animationFrameId = requestAnimationFrame(animateScroll);
-        } else {
-            finishOpening();
-        }
-    }
-
-    function updateSelectedItem() {
-        const centerX = window.innerWidth / 2;
-        let closestItem = null;
-        let minDistance = Infinity;
-
-        document.querySelectorAll('.scroll-item').forEach(item => {
-            item.classList.remove('selected');
-            const rect = item.getBoundingClientRect();
-            const itemCenter = rect.left + rect.width / 2;
-            const distance = Math.abs(itemCenter - centerX);
-
-            if (distance < minDistance) {
-                minDistance = distance;
-                closestItem = item;
+    function startFreeCaseTimer() {
+        setInterval(() => {
+            state.freeCaseTimeLeft--;
+            updateFreeCaseTimer();
+            localStorage.setItem('freeCaseTimeLeft', state.freeCaseTimeLeft);
+            
+            if (state.freeCaseTimeLeft <= 0) {
+                state.balance++;
+                state.freeCaseTimeLeft = config.freeCaseInterval;
+                saveState();
+                updateUI();
             }
-        });
+        }, 1000);
+    }
 
-        if (closestItem) {
-            closestItem.classList.add('selected');
-            state.selectedItem = JSON.parse(closestItem.dataset.item);
+    function updateFreeCaseTimer() {
+        const h = Math.floor(state.freeCaseTimeLeft / 3600);
+        const m = Math.floor((state.freeCaseTimeLeft % 3600) / 60);
+        const s = state.freeCaseTimeLeft % 60;
+        elements.freeCaseTimer.textContent = `${h}h ${m}m ${s}s`;
+    }
+
+    function updateUI() {
+        elements.balanceEl.textContent = state.balance;
+        elements.profileBalance.textContent = state.balance;
+        elements.totalOpened.textContent = state.stats.totalOpened;
+        updateOpenButtonText();
+        elements.openBtn.disabled = state.balance < state.selectedCount;
+    }
+
+    function updateOpenButtonText() {
+        elements.openBtn.textContent = state.selectedCount > 1 ? 
+            `ОТКРЫТЬ ${state.selectedCount} КЕЙСА` : 
+            'ОТКРЫТЬ 1 КЕЙС';
+    }
+
+    function toggleTheme() {
+        const newTheme = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+        applyTheme(newTheme);
+    }
+
+    function applyTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('theme', theme);
+        elements.themeToggle.textContent = theme === 'dark' ? '🌙' : '☀️';
+    }
+
+    function showInventory() {
+        elements.inventoryItems.innerHTML = '';
+        state.inventory.forEach(item => {
+            const itemEl = document.createElement('div');
+            itemEl.className = 'inventory-item';
+            itemEl.innerHTML = `
+                <img src="${item.image}" alt="${item.name}">
+                <h3>${item.name}</h3>
+                <p>${item.flavor}</p>
+                ${item.strength ? `<p class="strength">${item.strength}</p>` : ''}
+            `;
+            elements.inventoryItems.appendChild(itemEl);
+        });
+        elements.inventoryModal.style.display = 'flex';
+    }
+
+    function hideInventory() {
+        elements.inventoryModal.style.display = 'none';
+    }
+
+    function playSound(type) {
+        const sound = new Audio(`sounds/${type}.mp3`);
+        sound.volume = 0.5;
+        sound.play().catch(e => console.log("Audio play failed:", e));
+    }
+
+    function createConfetti() {
+        const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'];
+        
+        for (let i = 0; i < 100; i++) {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            confetti.style.left = `${Math.random() * 100}vw`;
+            confetti.style.width = `${Math.random() * 10 + 5}px`;
+            confetti.style.height = `${Math.random() * 10 + 5}px`;
+            confetti.style.animationDuration = `${Math.random() * 2 + 2}s`;
+            
+            document.body.appendChild(confetti);
+            
+            setTimeout(() => {
+                confetti.remove();
+            }, 3000);
         }
     }
 
-    function finishOpening() {
-        elements.scrollPhase.style.display = 'none';
-        elements.resultPhase.style.display = 'flex';
-
-        elements.wonItemImage.src = state.selectedItem.image;
-        elements.wonItemName.textContent = state.selectedItem.name;
-        elements.wonItemFlavor.textContent = state.selectedItem.flavor;
-
-        const rarityText = {
+    function getRarityText(item) {
+        const rarityMap = {
             'common': 'ОБЫЧНЫЙ',
             'rare': 'РЕДКИЙ',
             'mythical': 'МИФИЧЕСКИЙ',
@@ -232,78 +467,14 @@ document.addEventListener('DOMContentLoaded', () => {
             'discount-20': 'СКИДКА 20%',
             'free-shipping': 'БЕСПЛАТНАЯ ДОСТАВКА',
             'extra-spin': 'ДОП. ПРОКРУТ'
-        }[state.selectedItem.rarity];
-
-        elements.rarityBadge.textContent = rarityText;
-        elements.rarityBadge.className = `rarity-badge ${state.selectedItem.rarity}`;
-
-        // Обработка специальных наград
-        if (state.selectedItem.rarity === 'nothing') {
-            state.audio.lose.currentTime = 0;
-            state.audio.lose.play();
-        } else if (state.selectedItem.rarity === 'extra-spin') {
-            state.balance += 1;
-            elements.balanceEl.textContent = state.balance;
-            state.audio.win.currentTime = 0;
-            state.audio.win.play();
-        } else {
-            state.inventory.push(state.selectedItem);
-            updateInventoryCounter();
-            state.audio.win.currentTime = 0;
-            state.audio.win.play();
-        }
-
-        if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+        };
+        return rarityMap[item.rarity] || 'ОБЫЧНЫЙ';
     }
 
-    function continueAfterWin() {
-        elements.resultPhase.style.display = 'none';
-        elements.unlockPhase.style.opacity = '1';
-        state.isOpening = false;
-
-        if (state.balance === 0) {
-            state.balance = 3;
-            elements.balanceEl.textContent = state.balance;
-        }
-    }
-
-    function startFreeCaseTimer() {
-        setInterval(() => {
-            state.freeCaseTimeLeft--;
-            const m = Math.floor(state.freeCaseTimeLeft / 60);
-            const s = state.freeCaseTimeLeft % 60;
-            elements.freeCaseTimer.textContent = `${m}m ${s}s`;
-
-            if (state.freeCaseTimeLeft <= 0) {
-                state.balance++;
-                elements.balanceEl.textContent = state.balance;
-                state.freeCaseTimeLeft = 3600;
-            }
-        }, 1000);
-    }
-
-    function updateInventoryCounter() {
-        elements.inventoryCounter.textContent = `Предметов: ${state.inventory.length}`;
-    }
-
-    // Telegram main button
-    if (tg.platform !== 'unknown') {
-        tg.MainButton.setText("Купить пластинки");
-        tg.MainButton.onClick(() => {
-            tg.showPopup({
-                title: "Пополнение баланса",
-                message: "Выберите количество:",
-                buttons: [
-                    { id: '5', type: 'default', text: '5 пластинок за $5' },
-                    { id: '10', type: 'default', text: '10 пластинок за $8' }
-                ]
-            }, (btnId) => {
-                if (btnId) {
-                    state.balance += parseInt(btnId);
-                    elements.balanceEl.textContent = state.balance;
-                }
-            });
-        });
-        tg.MainButton.show();
+    function saveState() {
+        localStorage.setItem('inventory', JSON.stringify(state.inventory));
+        localStorage.setItem('stats', JSON.stringify(state.stats));
+        localStorage.setItem('balance', state.balance);
+        localStorage.setItem('lastCaseTime', state.lastCaseTime);
     }
 });
