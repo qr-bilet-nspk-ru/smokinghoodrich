@@ -1,9 +1,12 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const tg = window.Telegram.WebApp;
-    tg.expand();
-    tg.enableClosingConfirmation();
+    // Initialize Telegram WebApp if available
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+        tg.expand();
+        tg.enableClosingConfirmation();
+    }
 
-    // Элементы
+    // DOM Elements
     const elements = {
         unlockPhase: document.getElementById('unlock-phase'),
         scrollPhase: document.getElementById('scroll-phase'),
@@ -26,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
         profileBtn: document.getElementById('profile-btn')
     };
 
-    // Предметы
+    // Item data - these would typically come from a backend
     const items = [
         { name: "🍉 Арбуз", image: "images/items/watermelon.png", flavor: "Сочный летний вкус", strength: "2/5", probability: 10 },
         { name: "🔋 Энергетик", image: "images/items/energy.png", flavor: "Заряд бодрости", strength: "4/5", probability: 8 },
@@ -48,16 +51,18 @@ document.addEventListener('DOMContentLoaded', () => {
         { name: "Дополнительный прокрут", image: "images/items/extra-spin.png", flavor: "Откройте еще один кейс бесплатно", rarity: "extra-spin", probability: 6 }
     ];
 
+    // Configuration
     const config = {
-        scrollDuration: 200,
-        itemWidth: 160,
-        itemsCount: 120,
-        acceleration: 0.14,
-        deceleration: 0.01,
-        freeCaseInterval: 86400
+        itemWidth: 180,                      // Width of each item in the track
+        itemsCount: 150,                     // Number of items to generate in each track
+        spinDuration: 8000,                  // Total duration of the spin animation
+        spinEasing: 'cubic-bezier(0.12, 0.65, 0.40, 0.99)', // Smoother easing function
+        slowdownDuration: 2000,              // Duration of slowdown phase
+        freeCaseInterval: 86400,             // Time interval for free case (in seconds)
+        trackAnimationDelayIncrement: 250    // Delay between track animations
     };
 
-    // Состояние
+    // Application state
     const state = {
         balance: localStorage.getItem('balance') ? parseInt(localStorage.getItem('balance')) : 100,
         isOpening: false,
@@ -67,15 +72,10 @@ document.addEventListener('DOMContentLoaded', () => {
         selectedCount: 1,
         lastCaseTime: localStorage.getItem('lastCaseTime') ? parseInt(localStorage.getItem('lastCaseTime')) : null,
         wonItems: [],
-        animationFrameIds: [],
-        velocity: 0,
-        startTime: null,
-        lastTime: null
+        tracks: []
     };
 
-    // Инициализация
-    init();
-
+    // Initialize the application
     function init() {
         checkFreeCase();
         setupEventListeners();
@@ -85,6 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelector('.open-option[data-count="1"]').classList.add('active');
     }
 
+    // Set up event listeners
     function setupEventListeners() {
         elements.openBtn.addEventListener('click', startOpening);
         elements.continueBtn.addEventListener('click', continueAfterWin);
@@ -102,32 +103,32 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function checkFreeCase() {
-        if (!state.lastCaseTime) return;
-        
-        const now = Math.floor(Date.now() / 1000);
-        const timePassed = now - state.lastCaseTime;
-        
-        if (timePassed >= config.freeCaseInterval) {
-            const freeCases = Math.floor(timePassed / config.freeCaseInterval);
-            state.balance += freeCases;
-            state.lastCaseTime = now;
-            saveState();
-            updateUI();
-        }
-    }
-
+    // Start the case opening process
     function startOpening() {
         if (state.isOpening || state.balance < state.selectedCount) return;
         
         state.isOpening = true;
         state.balance -= state.selectedCount;
         state.wonItems = [];
+        state.tracks = [];
         
         updateUI();
-        animateOpening();
+        playSound('unlock');
+        
+        // Reset and animate the progress bar
+        elements.progressBar.style.width = '0%';
+        const progressInterval = setInterval(() => {
+            const width = parseFloat(elements.progressBar.style.width) || 0;
+            if (width >= 100) {
+                clearInterval(progressInterval);
+                animateOpening();
+            } else {
+                elements.progressBar.style.width = (width + 1) + '%';
+            }
+        }, 20);
     }
 
+    // Animate the case opening transition
     function animateOpening() {
         elements.caseImage.style.transform = 'rotateY(180deg) scale(1.2)';
         setTimeout(() => {
@@ -136,141 +137,156 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 1000);
     }
 
+    // Start the scrolling phase
     function startScrolling() {
         elements.unlockPhase.style.opacity = '0';
         elements.scrollPhase.style.display = 'flex';
         elements.multiTrackContainer.innerHTML = '';
         
+        // Create tracks for each case being opened
         for (let i = 0; i < state.selectedCount; i++) {
-            const trackContainer = document.createElement('div');
-            trackContainer.className = 'track-container';
-            
-            const centerLine = document.createElement('div');
-            centerLine.className = 'track-center-line';
-            trackContainer.appendChild(centerLine);
-            
-            const itemsTrack = document.createElement('div');
-            itemsTrack.className = 'items-track';
-            trackContainer.appendChild(itemsTrack);
-            
-            elements.multiTrackContainer.appendChild(trackContainer);
-            fillItemsTrack(itemsTrack);
+            createTrack(i);
         }
         
         playSound('scroll');
-        animateAllTracks();
+        
+        // Start the animations after a short delay
+        setTimeout(() => {
+            animateAllTracks();
+        }, 100);
     }
 
-    function animateAllTracks() {
-        const trackContainers = document.querySelectorAll('.track-container');
-        state.animationFrameIds = [];
+    // Create a single track for a case
+    function createTrack(index) {
+        const trackContainer = document.createElement('div');
+        trackContainer.className = 'track-container';
         
-        trackContainers.forEach((container, index) => {
-            const track = container.querySelector('.items-track');
-            const centerLine = container.querySelector('.track-center-line');
-            const centerLineRect = centerLine.getBoundingClientRect();
-            const centerX = centerLineRect.left + centerLineRect.width / 2;
-            
-            const firstItem = track.querySelector('.scroll-item');
-            const itemWidth = firstItem.offsetWidth + 20;
-            
-            const stopIndex = Math.floor(Math.random() * (config.itemsCount - 50)) + 30;
-            const targetPosition = stopIndex * itemWidth - (window.innerWidth / 2 - itemWidth / 2);
-            
-            let startTime = null;
-            let lastTime = null;
-            let currentPosition = 0;
-            let velocity = 0.5;
-            
-            function animateTrack(timestamp) {
-                if (!startTime) startTime = timestamp;
-                if (!lastTime) lastTime = timestamp;
-                
-                const elapsed = timestamp - startTime;
-                const deltaTime = timestamp - lastTime;
-                lastTime = timestamp;
-                
-                // Ускорение в начале
-                if (elapsed < config.scrollDuration * 0.7) {
-                    velocity += config.acceleration * deltaTime;
-                } 
-                // Замедление в конце
-                else {
-                    velocity = Math.max(0.05, velocity - config.deceleration * deltaTime);
-                }
-                
-                currentPosition += velocity * deltaTime;
-                
-                // Плавная остановка
-                if (currentPosition > targetPosition * 0.9) {
-                    velocity = Math.max(0.01, velocity * 0.95);
-                }
-                
-                // Финализация позиции
-                if (currentPosition >= targetPosition) {
-                    currentPosition = targetPosition;
-                    track.style.transform = `translateX(-${currentPosition}px)`;
-                    updateSelectedItem(track, container, index);
-                    
-                    if (index === trackContainers.length - 1) {
-                        setTimeout(finishOpening, 500);
-                    }
-                    return;
-                }
-                
-                track.style.transform = `translateX(-${currentPosition}px)`;
-                
-                // Обновление выбранного предмета
-                if (elapsed > config.scrollDuration * 0.8) {
-                    updateSelectedItem(track, container, index);
-                }
-                
-                state.animationFrameIds[index] = requestAnimationFrame(animateTrack);
-            }
-            
-            state.animationFrameIds[index] = requestAnimationFrame(animateTrack);
+        const centerLine = document.createElement('div');
+        centerLine.className = 'track-center-line';
+        trackContainer.appendChild(centerLine);
+        
+        const itemsTrack = document.createElement('div');
+        itemsTrack.className = 'items-track';
+        trackContainer.appendChild(itemsTrack);
+        
+        elements.multiTrackContainer.appendChild(trackContainer);
+        
+        // Create track object and store it in state
+        const track = {
+            container: trackContainer,
+            itemsTrack: itemsTrack,
+            items: fillTrackWithItems(itemsTrack),
+            selectedItem: null
+        };
+        
+        state.tracks.push(track);
+        
+        // Center the track
+        const containerWidth = trackContainer.offsetWidth;
+        const itemWidth = config.itemWidth;
+        const offset = (containerWidth - itemWidth) / 2;
+        itemsTrack.style.left = `${offset}px`;
+        
+        return track;
+    }
+
+    // Fill a track with random items
+    function fillTrackWithItems(track) {
+        const items = generateItems();
+        items.forEach(item => {
+            const itemEl = createItemElement(item);
+            track.appendChild(itemEl);
         });
+        return Array.from(track.children);
     }
 
-    function updateSelectedItem(track, container, trackIndex) {
-        const centerLine = container.querySelector('.track-center-line');
-        const centerLineRect = centerLine.getBoundingClientRect();
-        const centerX = centerLineRect.left + centerLineRect.width / 2;
-        
-        let closestItem = null;
-        let minDistance = Infinity;
-        
-        track.querySelectorAll('.scroll-item').forEach(item => {
-            item.classList.remove('selected');
-            const rect = item.getBoundingClientRect();
-            const itemCenter = rect.left + rect.width / 2;
-            const distance = Math.abs(itemCenter - centerX);
-            
-            if (distance < minDistance) {
-                minDistance = distance;
-                closestItem = item;
+    // Generate an array of random items based on probability
+    function generateItems() {
+        // Create a weighted pool based on probability
+        const weightedItems = [];
+        items.forEach(item => {
+            for (let i = 0; i < item.probability; i++) {
+                weightedItems.push(item);
             }
         });
         
-        if (closestItem) {
-            closestItem.classList.add('selected');
-            const selectedItem = JSON.parse(closestItem.dataset.item);
-            state.wonItems[trackIndex] = selectedItem;
+        // Generate the random items
+        const result = [];
+        for (let i = 0; i < config.itemsCount; i++) {
+            const randomIndex = Math.floor(Math.random() * weightedItems.length);
+            result.push(weightedItems[randomIndex]);
         }
+        return result;
     }
 
-    function finishOpening() {
-        document.querySelectorAll('.track-container').forEach((container, index) => {
-            const track = container.querySelector('.items-track');
-            updateSelectedItem(track, container, index);
+    // Create an HTML element for an item
+    function createItemElement(item) {
+        const itemEl = document.createElement('div');
+        itemEl.className = 'scroll-item';
+        itemEl.innerHTML = `
+            <img src="${item.image}" alt="${item.name}">
+            <h3>${item.name}</h3>
+        `;
+        itemEl.dataset.item = JSON.stringify(item);
+        return itemEl;
+    }
+
+    // Animate all tracks with staggered timing
+    function animateAllTracks() {
+        state.tracks.forEach((track, index) => {
+            const itemWidth = config.itemWidth;
+            const items = track.items;
+            
+            // Calculate the winning item position
+            const winningIndex = Math.floor(Math.random() * (items.length - 50)) + 40;
+            const winningOffset = winningIndex * itemWidth;
+            
+            // Add subtle randomness for natural effect
+            const randomOffset = Math.random() * itemWidth * 0.3;
+            const finalOffset = winningOffset + randomOffset;
+            
+            // Add staggered delay for multi-case opening
+            const delay = index * config.trackAnimationDelayIncrement;
+            
+            // Start the animation after the delay
+            setTimeout(() => {
+                // Set up the smooth animation
+                track.itemsTrack.style.transition = `transform ${config.spinDuration}ms ${config.spinEasing}`;
+                track.itemsTrack.style.transform = `translateX(-${finalOffset}px)`;
+                
+                // Handle the end of animation
+                const handleTransitionEnd = () => {
+                    track.itemsTrack.removeEventListener('transitionend', handleTransitionEnd);
+                    
+                    // Add the selected class to the winning item
+                    const selectedItem = items[winningIndex];
+                    selectedItem.classList.add('selected');
+                    
+                    // Store the selected item
+                    state.wonItems[index] = JSON.parse(selectedItem.dataset.item);
+                    
+                    // If all tracks are done, show the results
+                    if (index === state.tracks.length - 1) {
+                        setTimeout(finishOpening, 800);
+                    }
+                };
+                
+                track.itemsTrack.addEventListener('transitionend', handleTransitionEnd);
+            }, delay);
         });
         
-        state.animationFrameIds.forEach(id => cancelAnimationFrame(id));
-        state.animationFrameIds = [];
-        
+        // Play the slowdown sound after a delay
+        setTimeout(() => {
+            playSound('slowdown');
+        }, config.spinDuration - config.slowdownDuration);
+    }
+
+    // Finish the opening process and show results
+    function finishOpening() {
         elements.scrollPhase.style.display = 'none';
         showResults();
         
+        // Update stats and handle prizes
         state.stats.totalOpened += state.selectedCount;
         state.lastCaseTime = Math.floor(Date.now() / 1000);
         
@@ -286,10 +302,12 @@ document.addEventListener('DOMContentLoaded', () => {
         updateUI();
     }
 
+    // Show the results of opening
     function showResults() {
         elements.resultPhase.style.display = 'flex';
         elements.multiResultContainer.innerHTML = '';
         
+        // Create item cards for won items
         state.wonItems.forEach(item => {
             const itemCard = document.createElement('div');
             itemCard.className = 'item-card';
@@ -298,39 +316,32 @@ document.addEventListener('DOMContentLoaded', () => {
             itemGlow.className = 'item-glow';
             itemCard.appendChild(itemGlow);
             
-            const itemImg = document.createElement('img');
-            itemImg.src = item.image;
-            itemImg.alt = item.name;
-            itemCard.appendChild(itemImg);
+            itemCard.innerHTML += `
+                <img src="${item.image}" alt="${item.name}">
+                <div class="item-details">
+                    <h2>${item.name}</h2>
+                    <div class="rarity-badge ${item.rarity || 'common'}">${getRarityText(item)}</div>
+                    <p>${item.flavor}</p>
+                </div>
+            `;
             
-            const itemDetails = document.createElement('div');
-            itemDetails.className = 'item-details';
-            
-            const itemName = document.createElement('h2');
-            itemName.textContent = item.name;
-            itemDetails.appendChild(itemName);
-            
-            const rarityBadge = document.createElement('div');
-            rarityBadge.className = `rarity-badge ${item.rarity || 'common'}`;
-            rarityBadge.textContent = getRarityText(item);
-            itemDetails.appendChild(rarityBadge);
-            
-            const itemFlavor = document.createElement('p');
-            itemFlavor.textContent = item.flavor;
-            itemDetails.appendChild(itemFlavor);
-            
-            itemCard.appendChild(itemDetails);
             elements.multiResultContainer.appendChild(itemCard);
             
-            if (item.strength === '5/5' || item.rarity === 'extra-spin') {
+            // Create confetti for special items
+            if (item.strength === '5/5' || item.rarity === 'extra-spin' || 
+                item.rarity === 'free-shipping' || item.rarity === 'discount-20') {
                 createConfetti();
             }
         });
         
-        playSound(state.wonItems.some(item => item.rarity === 'nothing') ? 'lose' : 'win');
+        // Play sound based on result
+        playSound(state.wonItems.some(item => item.rarity !== 'nothing') ? 'win' : 'lose');
+        
+        // Vibrate if supported
         if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
     }
 
+    // Continue after viewing results
     function continueAfterWin() {
         elements.resultPhase.style.display = 'none';
         elements.unlockPhase.style.opacity = '1';
@@ -338,29 +349,23 @@ document.addEventListener('DOMContentLoaded', () => {
         updateUI();
     }
 
-    function fillItemsTrack(track) {
-        const weightedItems = [];
-        items.forEach(item => {
-            for (let i = 0; i < item.probability; i++) {
-                weightedItems.push(item);
-            }
-        });
+    // Check if user is eligible for free case
+    function checkFreeCase() {
+        if (!state.lastCaseTime) return;
         
-        for (let i = 0; i < config.itemsCount; i++) {
-            const randomIndex = Math.floor(Math.random() * weightedItems.length);
-            const randomItem = weightedItems[randomIndex];
-            
-            const itemElement = document.createElement('div');
-            itemElement.className = 'scroll-item';
-            itemElement.innerHTML = `
-                <img src="${randomItem.image}" alt="${randomItem.name}">
-                <h3>${randomItem.name}</h3>
-            `;
-            itemElement.dataset.item = JSON.stringify(randomItem);
-            track.appendChild(itemElement);
+        const now = Math.floor(Date.now() / 1000);
+        const timePassed = now - state.lastCaseTime;
+        
+        if (timePassed >= config.freeCaseInterval) {
+            const freeCases = Math.floor(timePassed / config.freeCaseInterval);
+            state.balance += freeCases;
+            state.lastCaseTime = now;
+            saveState();
+            updateUI();
         }
     }
 
+    // Start the free case timer
     function startFreeCaseTimer() {
         setInterval(() => {
             state.freeCaseTimeLeft--;
@@ -376,13 +381,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 1000);
     }
 
+    // Update the free case timer display
     function updateFreeCaseTimer() {
-        const h = Math.floor(state.freeCaseTimeLeft / 3600);
-        const m = Math.floor((state.freeCaseTimeLeft % 3600) / 60);
-        const s = state.freeCaseTimeLeft % 60;
-        elements.freeCaseTimer.textContent = `${h}h ${m}m ${s}s`;
+        const hours = Math.floor(state.freeCaseTimeLeft / 3600);
+        const minutes = Math.floor((state.freeCaseTimeLeft % 3600) / 60);
+        const seconds = state.freeCaseTimeLeft % 60;
+        elements.freeCaseTimer.textContent = 
+            `${hours.toString().padStart(2, '0')}h ${minutes.toString().padStart(2, '0')}m ${seconds.toString().padStart(2, '0')}s`;
     }
 
+    // Update all UI elements
     function updateUI() {
         elements.balanceEl.textContent = state.balance;
         elements.profileBalance.textContent = state.balance;
@@ -391,23 +399,27 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.openBtn.disabled = state.balance < state.selectedCount;
     }
 
+    // Update the open button text
     function updateOpenButtonText() {
         elements.openBtn.textContent = state.selectedCount > 1 ? 
             `ОТКРЫТЬ ${state.selectedCount} КЕЙСА` : 
             'ОТКРЫТЬ 1 КЕЙС';
     }
 
+    // Toggle between light and dark theme
     function toggleTheme() {
         const newTheme = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
         applyTheme(newTheme);
     }
 
+    // Apply a theme
     function applyTheme(theme) {
         document.documentElement.setAttribute('data-theme', theme);
         localStorage.setItem('theme', theme);
         elements.themeToggle.textContent = theme === 'dark' ? '🌙' : '☀️';
     }
 
+    // Show the inventory modal
     function showInventory() {
         elements.inventoryItems.innerHTML = '';
         state.inventory.forEach(item => {
@@ -424,18 +436,24 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.inventoryModal.style.display = 'flex';
     }
 
+    // Hide the inventory modal
     function hideInventory() {
         elements.inventoryModal.style.display = 'none';
     }
 
+    // Play a sound
     function playSound(type) {
-        const sound = new Audio(`sounds/${type}.mp3`);
-        sound.volume = 0.5;
-        sound.play().catch(e => console.log("Audio play failed:", e));
+        const sound = document.getElementById(`${type}-sound`);
+        if (sound) {
+            sound.currentTime = 0;
+            sound.volume = 0.5;
+            sound.play().catch(e => console.log("Error playing sound:", e));
+        }
     }
 
+    // Create confetti effect
     function createConfetti() {
-        const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'];
+        const colors = ['#00B4D8', '#90E0EF', '#0096C7', '#0077B6', '#48CAE4', '#00F5FF'];
         
         for (let i = 0; i < 100; i++) {
             const confetti = document.createElement('div');
@@ -454,6 +472,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Get rarity text for display
     function getRarityText(item) {
         const rarityMap = {
             'common': 'ОБЫЧНЫЙ',
@@ -471,10 +490,14 @@ document.addEventListener('DOMContentLoaded', () => {
         return rarityMap[item.rarity] || 'ОБЫЧНЫЙ';
     }
 
+    // Save state to localStorage
     function saveState() {
         localStorage.setItem('inventory', JSON.stringify(state.inventory));
         localStorage.setItem('stats', JSON.stringify(state.stats));
         localStorage.setItem('balance', state.balance);
         localStorage.setItem('lastCaseTime', state.lastCaseTime);
     }
+
+    // Initialize the application
+    init();
 });

@@ -1,5 +1,5 @@
 :root {
-    /* Цветовая палитра */
+    /* Main color palette */
     --primary: #00B4D8;
     --primary-dark: #0096C7;
     --primary-light: #90E0EF;
@@ -9,16 +9,22 @@
     --accent: #48CAE4;
     --neon-blue: #00F5FF;
     --neon-pink: #FF10F0;
+    
+    /* Background and text colors */
     --bg-color: #0A1128;
     --text-color: #F8F9FA;
     --card-bg: rgba(30, 30, 30, 0.9);
     --controls-bg: rgba(10, 17, 40, 0.8);
     --inventory-bg: rgba(20, 25, 50, 0.95);
     
-    /* Градиенты */
+    /* Gradients */
     --primary-gradient: linear-gradient(135deg, var(--primary), var(--primary-dark));
     --discount-gradient: linear-gradient(135deg, #4CC9F0, #4895EF);
     --shipping-gradient: linear-gradient(135deg, #7209B7, #F72585);
+    
+    /* Shadows and glows */
+    --neon-shadow: 0 0 15px var(--neon-blue), 0 0 30px rgba(0, 245, 255, 0.3);
+    --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
 
 [data-theme="light"] {
@@ -51,11 +57,13 @@ body {
 .container {
     display: flex;
     flex-direction: column;
-    height: 100%;
+    height: 100vh;
     padding: 15px;
     max-width: 100%;
+    overflow: hidden;
 }
 
+/* Theme Switcher */
 .theme-switcher {
     position: absolute;
     top: 10px;
@@ -78,6 +86,7 @@ body {
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
 }
 
+/* Case Container */
 .case-container {
     position: relative;
     flex-grow: 1;
@@ -85,8 +94,10 @@ body {
     justify-content: center;
     align-items: center;
     margin-bottom: 15px;
+    overflow: hidden;
 }
 
+/* Unlock Phase */
 .unlock-phase {
     display: flex;
     flex-direction: column;
@@ -100,29 +111,11 @@ body {
     height: 200px;
     object-fit: contain;
     margin-bottom: 25px;
-    filter: 
-      drop-shadow(0 0 15px var(--neon-blue))
-      drop-shadow(0 0 30px rgba(0, 245, 255, 0.3));
+    filter: drop-shadow(0 0 15px var(--neon-blue)) drop-shadow(0 0 30px rgba(0, 245, 255, 0.3));
     transform-style: preserve-3d;
     transition: transform 0.5s ease;
     animation: float 4s ease-in-out infinite;
     perspective: 1000px;
-}
-
-@keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-15px); }
-}
-
-@keyframes pulse {
-    0% { transform: scale(0.8); opacity: 0.5; }
-    50% { transform: scale(1.1); opacity: 0.8; }
-    100% { transform: scale(0.8); opacity: 0.5; }
-}
-
-@keyframes shine {
-    0% { transform: translateX(-100%); }
-    100% { transform: translateX(100%); }
 }
 
 .unlock-progress {
@@ -139,6 +132,7 @@ body {
     overflow: hidden;
     box-shadow: 0 0 10px rgba(0, 180, 216, 0.5);
     margin-bottom: 15px;
+    width: 0%;
 }
 
 .progress-bar::after {
@@ -164,66 +158,66 @@ body {
     text-transform: uppercase;
 }
 
+/* Scroll Phase */
 .scroll-phase {
     position: absolute;
     width: 100%;
-    height: 80%;
-    top: 10%;
+    height: 100%;
     display: none;
     flex-direction: column;
     justify-content: center;
+    align-items: center;
     overflow: hidden;
 }
 
 .multi-track-container {
     display: flex;
+    flex-direction: column;
     gap: 20px;
     width: 100%;
-    height: 100%;
-    padding: 0 10px;
+    height: auto;
     align-items: center;
 }
 
 .track-container {
-    flex: 1;
     position: relative;
-    height: 100%;
+    width: 100%;
+    height: 180px;
     overflow: hidden;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
 }
 
 .track-center-line {
     position: absolute;
-    top: 50%;
     left: 50%;
+    top: 50%;
     transform: translate(-50%, -50%);
     width: 160px;
     height: 160px;
     border: 3px solid var(--neon-blue);
     border-radius: 10px;
     pointer-events: none;
-    box-shadow: 
-      0 0 15px var(--neon-blue),
-      0 0 30px rgba(0, 245, 255, 0.3),
-      inset 0 0 15px var(--neon-blue);
+    box-shadow: var(--neon-shadow), inset 0 0 15px var(--neon-blue);
     z-index: 2;
     background-color: rgba(0, 180, 216, 0.1);
 }
 
 .items-track {
+    position: absolute;
     display: flex;
-    transition: transform 0.1s ease-out;
-    position: relative;
-    will-change: transform;
     height: 100%;
+    left: 0;
+    top: 0;
     align-items: center;
-    transition: transform 0.1s linear;
+    transform: translateX(0);
+    transition: transform 0ms cubic-bezier(0.2, 0.7, 0.3, 1);
     will-change: transform;
-    backface-visibility: hidden;
 }
 
 .scroll-item {
-    min-width: 160px;
-    height: 180px;
+    width: 160px;
+    height: 160px;
     margin: 0 10px;
     background: rgba(40, 40, 40, 0.8);
     border-radius: 8px;
@@ -233,10 +227,8 @@ body {
     justify-content: center;
     border: 2px solid transparent;
     transition: all 0.3s ease;
-    will-change: transform;
     backdrop-filter: blur(5px);
     flex-shrink: 0;
-    transition: transform 0.3s ease-out, box-shadow 0.3s ease-out;
 }
 
 .scroll-item img {
@@ -255,6 +247,7 @@ body {
     padding: 0 10px;
 }
 
+/* Result Phase */
 .result-phase {
     position: absolute;
     width: 100%;
@@ -271,7 +264,7 @@ body {
     display: flex;
     gap: 20px;
     width: 100%;
-    padding: 0 20px;
+    padding: 20px;
     margin-bottom: 20px;
     flex-wrap: wrap;
     justify-content: center;
@@ -290,10 +283,9 @@ body {
     flex-direction: column;
     align-items: center;
     text-align: center;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    box-shadow: var(--card-shadow);
     border: 1px solid var(--primary);
     overflow: hidden;
-    margin-bottom: 10px;
 }
 
 .item-glow {
@@ -364,6 +356,7 @@ body {
     box-shadow: 0 5px 20px rgba(0, 180, 216, 0.7);
 }
 
+/* Controls */
 .controls {
     display: flex;
     flex-direction: column;
@@ -371,6 +364,7 @@ body {
     padding: 15px;
     background: var(--controls-bg);
     border-radius: 10px;
+    margin-top: auto;
 }
 
 .balance-container {
@@ -474,6 +468,7 @@ body {
     margin-top: 3px;
 }
 
+/* Inventory Modal */
 .inventory-modal {
     position: fixed;
     top: 0;
@@ -582,7 +577,7 @@ body {
     transform: translateY(-2px);
 }
 
-/* Стили для редкостей */
+/* Rarity styles */
 .nothing {
     background: #555;
     color: white;
@@ -620,30 +615,47 @@ body {
     animation: pulse 1.5s infinite;
 }
 
-/* Эффекты выбранного предмета */
-.selected .scroll-item {
-    border-color: var(--neon-blue);
-    box-shadow: 
-      0 0 15px var(--neon-blue),
-      0 0 30px rgba(0, 245, 255, 0.3);
+/* Selected item effects */
+.selected {
+    border-color: var(--neon-blue) !important;
+    box-shadow: var(--neon-shadow) !important;
     transform: scale(1.1);
-    background: rgba(50, 50, 50, 0.9);
+    background: rgba(50, 50, 50, 0.9) !important;
+    z-index: 10;
 }
 
-.selected .scroll-item img {
+.selected img {
     transform: scale(1.15);
     filter: drop-shadow(0 0 10px rgba(255,255,255,0.5));
 }
 
-/* Конфетти эффект */
+/* Confetti effect */
 .confetti {
-    position: absolute;
+    position: fixed;
     width: 10px;
     height: 10px;
     background-color: #f00;
     opacity: 0;
     z-index: 999;
     animation: confetti-fall 3s linear forwards;
+    pointer-events: none;
+}
+
+/* Animations */
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-15px); }
+}
+
+@keyframes pulse {
+    0% { transform: scale(0.8); opacity: 0.5; }
+    50% { transform: scale(1.1); opacity: 0.8; }
+    100% { transform: scale(0.8); opacity: 0.5; }
+}
+
+@keyframes shine {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
 }
 
 @keyframes confetti-fall {
@@ -657,7 +669,7 @@ body {
     }
 }
 
-/* Адаптация для мобильных */
+/* Responsive styles */
 @media (max-width: 768px) {
     .case-image {
         width: 200px;
@@ -665,9 +677,8 @@ body {
     }
     
     .scroll-item {
-        min-width: 120px;
-        height: 150px;
-        margin: 0 10px;
+        width: 120px;
+        height: 120px;
     }
     
     .scroll-item img {
@@ -706,8 +717,8 @@ body {
 
 @media (max-width: 480px) {
     .scroll-item {
-        min-width: 100px;
-        height: 130px;
+        width: 100px;
+        height: 100px;
     }
     
     .scroll-item img {
