@@ -498,6 +498,6 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('lastCaseTime', state.lastCaseTime);
     }
 
-    // Initialize the application
+    // Initialize the application4
     init();
 });
